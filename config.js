@@ -21,6 +21,7 @@ System.config({
     "core-js": "npm:core-js@0.9.15",
     "gulp": "npm:gulp@3.9.0",
     "joint": "github:beintrepid/joint@0.0.1",
+    "linq-es6": "npm:linq-es6@0.2.1",
     "lodash": "npm:lodash@3.10.0",
     "require-dir": "npm:require-dir@0.3.0",
     "run-sequence": "npm:run-sequence@1.1.0",

@@ -10,6 +10,7 @@
     },
     "dependencies": {
       "backbone": "npm:backbone@^1.2.1",
+      "linq-es6": "npm:linq-es6@0.2.1",
       "lodash": "npm:lodash@^3.10.0"
     },
     "devDependencies": {
