@@ -19,7 +19,7 @@ System.register(['./joint', './joint.shapes.devs', 'linq-es6'], function (_expor
                     _classCallCheck(this, PipeConverter);
 
                     this.currentOffset = 0;
-                    this.nodeMargin = 160;
+                    this.nodeMargin = 560;
                 }
 
                 PipeConverter.prototype.toJointGraph = function toJointGraph(pipe, graph) {
@@ -38,14 +38,24 @@ System.register(['./joint', './joint.shapes.devs', 'linq-es6'], function (_expor
                     });
 
                     var c1 = new joint.shapes.devs.Coupled({
-                        position: { x: this.currentOffset, y: 150 },
+                        position: { x: 100, y: 150 },
                         size: { width: 100, height: 100 },
                         inPorts: ['in'],
                         outPorts: outputs,
                         attrs: { '.label': { text: node.getNodeName() } }
                     });
 
+                    var e1 = new joint.shapes.devs.Coupled({
+                        position: { x: 10, y: 150 },
+                        size: { width: 10, height: 10 },
+
+                        attrs: { '.label': { text: 'test' } }
+                    });
+
                     graph.addCells([c1]);
+                    graph.addCells([e1]);
+
+                    c1.embed(e1);
 
                     if (parentGraphNode != null) {
                         this.connect(parentGraphNode, node.getNodeName(), c1, 'in', graph);

@@ -1,7 +1,7 @@
-System.register(['./joint', './joint.shapes.devs', 'lodash', 'vectorizer', 'geometry', './PipeConverter', 'dash-transform', './pipeConverter'], function (_export) {
+System.register(['./joint', './joint.shapes.devs', './treelayout', 'lodash', 'vectorizer', 'geometry', './PipeConverter', 'dash-transform', './pipeConverter'], function (_export) {
     'use strict';
 
-    var jointLib, jointShapesDevLib, _, V, g, PipeConverter, transform;
+    var jointLib, jointShapesDevLib, treeLayout, _, V, g, PipeConverter, transform;
 
     _export('runStuff', runStuff);
 
@@ -12,17 +12,21 @@ System.register(['./joint', './joint.shapes.devs', 'lodash', 'vectorizer', 'geom
             return [1, 2, 3, 4];
         });
 
-        var IncrementInputFilter = new transform.FunctionFilter('IncrementInput', function (input, i) {
+        var incrementInputFilter = new transform.FunctionFilter('IncrementInput', function (input, i) {
             return i + 1;
         });
+        var IncrementInputFilterNodea = new transform.TransformNode(null, incrementInputFilter);
+        var IncrementInputFilterNodeb = new transform.TransformNode(null, incrementInputFilter);
 
-        var GetFiveFilter = new transform.FunctionFilter('GetFive', function (input, i) {
+        var GetFiveFilter = new transform.TransformNode(null, new transform.FunctionFilter('GetFive', function (input, i) {
             return 5;
-        });
+        }));
+
+        GetFiveFilter.addInput(IncrementInputFilterNodea);
 
         var pipeline = new transform.Pipe('Simple Pipe');
 
-        pipeline.add(getDataArrayFilter).add(IncrementInputFilter).add(GetFiveFilter);
+        pipeline.add(getDataArrayFilter).add(IncrementInputFilterNodeb).add(GetFiveFilter);
 
         return pc.toJointGraph(pipeline, graph);
     }
@@ -91,6 +95,8 @@ System.register(['./joint', './joint.shapes.devs', 'lodash', 'vectorizer', 'geom
             jointLib = _joint['default'];
         }, function (_jointShapesDevs) {
             jointShapesDevLib = _jointShapesDevs['default'];
+        }, function (_treelayout) {
+            treeLayout = _treelayout['default'];
         }, function (_lodash) {
             _ = _lodash['default'];
         }, function (_vectorizer) {

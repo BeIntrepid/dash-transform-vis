@@ -20,6 +20,7 @@ export {PipeConverter} from './pipeConverter';
 
 import jointLib from './joint';
 import jointShapesDevLib from './joint.shapes.devs';
+import treeLayout from './treelayout';
 import _ from 'lodash';
 import V from 'vectorizer';
 import g from 'geometry';
@@ -36,18 +37,22 @@ function generatePipeGraph(graph)
         return [1,2,3,4];
     });
 
-    var IncrementInputFilter = new transform.FunctionFilter('IncrementInput',(input,i)=>{
+    var incrementInputFilter = new transform.FunctionFilter('IncrementInput',(input,i)=>{
         return i + 1;
     });
+    var IncrementInputFilterNodea = new transform.TransformNode(null,incrementInputFilter);
+    var IncrementInputFilterNodeb = new transform.TransformNode(null,incrementInputFilter);
 
-    var GetFiveFilter = new transform.FunctionFilter('GetFive',(input,i)=>{
+    var GetFiveFilter = new transform.TransformNode(null,new transform.FunctionFilter('GetFive',(input,i)=>{
         return 5;
-    });
+    }));
+
+    GetFiveFilter.addInput(IncrementInputFilterNodea);
 
     var pipeline = new transform.Pipe('Simple Pipe');
 
     pipeline.add(getDataArrayFilter)
-        .add(IncrementInputFilter)
+        .add(IncrementInputFilterNodeb)
         .add(GetFiveFilter);
 
     return pc.toJointGraph(pipeline,graph);

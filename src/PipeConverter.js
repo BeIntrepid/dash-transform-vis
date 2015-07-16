@@ -12,10 +12,18 @@ export class PipeConverter
         var rootNode = pipe.rootNode;
         this.traverseAndBuild(null,null,graph,pipe.rootNode);
 
+        //var graphLayout = new joint.layout.TreeLayout({
+        //    graph: graph,
+        //    verticalGap: 80,
+        //    horizontalGap: 80
+        //});
+        //
+        //graphLayout.layout();
+
     }
 
     currentOffset = 0;
-    nodeMargin = 160;
+    nodeMargin = 560;
 
     traverseAndBuild(parentNode,parentGraphNode,graph,node)
     {
@@ -26,24 +34,30 @@ export class PipeConverter
 
         //var outPorts = node.ancestors
         var c1 = new joint.shapes.devs.Coupled({
-            position: { x: this.currentOffset, y: 150 },
+            position: { x: 100, y: 150 },
             size: { width: 100, height: 100 },
             inPorts: ['in'],
             outPorts: outputs,
             attrs: {'.label' : {text : node.getNodeName()}}
         });
 
+        //var outPorts = node.ancestors
+        var e1 = new joint.shapes.devs.Coupled({
+            position: { x: 10, y: 150 },
+            size: { width: 10, height: 10 },
+            //inPorts: ['in'],
+            attrs: {'.label' : {text : 'test'}}
+        });
+
         graph.addCells([c1]);
+        graph.addCells([e1]);
+
+        c1.embed(e1);
 
         if(parentGraphNode != null)
         {
             this.connect(parentGraphNode,node.getNodeName(),c1,'in',graph);
         }
-
-        //node.ancestors.forEach((n)=>{
-        //    this.addSelfAndAncestorsToArray(ancestorArray,n);
-        //});
-
 
         this.currentOffset += this.nodeMargin;
         node.ancestors.forEach((n)=>{
