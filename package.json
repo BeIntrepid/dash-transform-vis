@@ -1,0 +1,43 @@
+{
+  "name": "Dash-TemplateModule",
+  "version": "0.0.2",
+  "description": "Empty template ready to be used for building modules. Includes a gulp build and test workflow.",
+  "jspm": {
+    "main": "index",
+    "format": "register",
+    "directories": {
+      "lib": "dist/system"
+    },
+    "dependencies": {
+      "backbone": "npm:backbone@^1.2.1",
+      "lodash": "npm:lodash@^3.10.0"
+    },
+    "devDependencies": {
+      "babel": "npm:babel-core@^5.1.13",
+      "babel-runtime": "npm:babel-runtime@^5.1.13",
+      "core-js": "npm:core-js@^0.9.4"
+    }
+  },
+  "devDependencies": {
+    "del": "^1.1.0",
+    "gulp": "^3.8.10",
+    "gulp-babel": "^5.1.0",
+    "gulp-bump": "^0.1.11",
+    "gulp-jshint": "^1.9.0",
+    "gulp-karma": "0.0.4",
+    "gulp-shell": "^0.4.2",
+    "gulp-yuidoc": "^0.1.2",
+    "jasmine-core": "^2.3.4",
+    "karma": "^0.12.36",
+    "karma-babel-preprocessor": "^5.2.1",
+    "karma-chrome-launcher": "^0.1.12",
+    "karma-coverage": "^0.4.2",
+    "karma-jasmine": "^0.3.5",
+    "karma-jspm": "^1.1.5",
+    "object.assign": "^1.0.3",
+    "require-dir": "^0.1.0",
+    "run-sequence": "^1.0.2",
+    "vinyl-paths": "^1.0.0",
+    "yargs": "^3.12.0"
+  }
+}
