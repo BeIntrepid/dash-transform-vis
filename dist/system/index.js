@@ -34,6 +34,7 @@ System.register(['jointjs', './PipeConverter', 'dash-transform', './pipeConverte
         var pipeline = new transform.Pipe('Simple Pipe');
 
         var dataArrayFilterNode = new transform.TransformNode(null, getDataArrayFilter);
+        dataArrayFilterNode.addInput(embeddedPipe);
 
         pipeline.add(dataArrayFilterNode).add(IncrementInputFilterNodeb).add(GetFiveFilter);
 

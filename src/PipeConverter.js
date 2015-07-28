@@ -9,7 +9,13 @@ export class PipeConverter
     {
 
         var rootNode = pipe.rootNode;
-        var layoutInfo = this.traverseAndBuild(null,null,graph,pipe.rootNode,0);
+
+        var params = new TraverseParams();
+        params.graph = graph;
+        params.node = pipe.rootNode;
+        params.level = 0;
+
+        var layoutInfo = this.traverseAndBuild(params);
 
         this.treeLayout(graph,layoutInfo );
 
@@ -62,13 +68,10 @@ export class PipeConverter
     currentOffset = 0;
     nodeMargin = 560;
 
-    traverseAndBuild(    parentNode,
-    parentGraphNode,
-    graph,
-    node,
-    level,
-    layoutInfo)
+    traverseAndBuild(params)
     {
+
+        var [node,parentGraphNode,graph,node,level,layoutInfo] = [params.parentNode,params.parentGraphNode,params.graph,params.node,params.level,params.layoutInfo];
 
         if (layoutInfo == null)
         {
@@ -93,9 +96,16 @@ export class PipeConverter
 
         if(node.pipe instanceof Pipe)
         {
-            this.traverseAndBuild(node,c1,graph,node.pipe.rootNode,0);
+            //var params = new TraverseParams();
+            //params.parentNode = node;
+            //params.parentGraphNode = c1;
+            //params.graph = graph;
+            //params.node = node.pipe.rootNode;
+            //params.level = 0;
+            //params.layoutInfo = layoutInfo;
+            //params.parentPipe = node.pipe;
+            //this.traverseAndBuild(params);
         }
-
 
         if(layoutInfo.nodeLevels[level] == null)
         {
@@ -116,7 +126,16 @@ export class PipeConverter
         this.currentOffset += this.nodeMargin;
         node.ancestors.forEach((n)=>{
 
-            this.traverseAndBuild(node,c1,graph,n,level + 1,layoutInfo);
+
+            var params = new TraverseParams();
+            params.parentNode = node;
+            params.parentGraphNode = c1;
+            params.graph = graph;
+            params.node = n;
+            params.level = level + 1;
+            params.layoutInfo = layoutInfo;
+
+            this.traverseAndBuild(params);
         });
 
         return layoutInfo;
@@ -138,4 +157,5 @@ class TraverseParams{
     node;
     level;
     layoutInfo;
+    parentPipe;
 }

@@ -25,7 +25,13 @@ System.register(['jointjs', 'linq-es6', 'dash-transform'], function (_export) {
                 PipeConverter.prototype.toJointGraph = function toJointGraph(pipe, graph) {
 
                     var rootNode = pipe.rootNode;
-                    var layoutInfo = this.traverseAndBuild(null, null, graph, pipe.rootNode, 0);
+
+                    var params = new TraverseParams();
+                    params.graph = graph;
+                    params.node = pipe.rootNode;
+                    params.level = 0;
+
+                    var layoutInfo = this.traverseAndBuild(params);
 
                     this.treeLayout(graph, layoutInfo);
                 };
@@ -62,8 +68,15 @@ System.register(['jointjs', 'linq-es6', 'dash-transform'], function (_export) {
                     });
                 };
 
-                PipeConverter.prototype.traverseAndBuild = function traverseAndBuild(parentNode, parentGraphNode, graph, node, level, layoutInfo) {
+                PipeConverter.prototype.traverseAndBuild = function traverseAndBuild(params) {
                     var _this = this;
+
+                    var node = params.parentNode;
+                    var parentGraphNode = params.parentGraphNode;
+                    var graph = params.graph;
+                    var node = params.node;
+                    var level = params.level;
+                    var layoutInfo = params.layoutInfo;
 
                     if (layoutInfo == null) {
                         layoutInfo = { nodeLevels: [] };
@@ -84,9 +97,7 @@ System.register(['jointjs', 'linq-es6', 'dash-transform'], function (_export) {
 
                     graph.addCells([c1]);
 
-                    if (node.pipe instanceof Pipe) {
-                        this.traverseAndBuild(node, c1, graph, node.pipe.rootNode, 0);
-                    }
+                    if (node.pipe instanceof Pipe) {}
 
                     if (layoutInfo.nodeLevels[level] == null) {
                         layoutInfo.nodeLevels[level] = { count: 1, nodes: [] };
@@ -103,7 +114,15 @@ System.register(['jointjs', 'linq-es6', 'dash-transform'], function (_export) {
                     this.currentOffset += this.nodeMargin;
                     node.ancestors.forEach(function (n) {
 
-                        _this.traverseAndBuild(node, c1, graph, n, level + 1, layoutInfo);
+                        var params = new TraverseParams();
+                        params.parentNode = node;
+                        params.parentGraphNode = c1;
+                        params.graph = graph;
+                        params.node = n;
+                        params.level = level + 1;
+                        params.layoutInfo = layoutInfo;
+
+                        _this.traverseAndBuild(params);
                     });
 
                     return layoutInfo;
