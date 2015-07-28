@@ -1,7 +1,7 @@
-System.register(['./joint', './joint.shapes.devs', './treelayout', 'lodash', 'vectorizer', 'geometry', './PipeConverter', 'dash-transform', './pipeConverter'], function (_export) {
+System.register(['jointjs', './PipeConverter', 'dash-transform', './pipeConverter'], function (_export) {
     'use strict';
 
-    var jointLib, jointShapesDevLib, treeLayout, _, V, g, PipeConverter, transform;
+    var joint, PipeConverter, transform;
 
     _export('runStuff', runStuff);
 
@@ -17,29 +17,39 @@ System.register(['./joint', './joint.shapes.devs', './treelayout', 'lodash', 've
         });
         var IncrementInputFilterNodea = new transform.TransformNode(null, incrementInputFilter);
         var IncrementInputFilterNodeb = new transform.TransformNode(null, incrementInputFilter);
+        var IncrementInputFilterNodec = new transform.TransformNode(null, incrementInputFilter);
 
         var GetFiveFilter = new transform.TransformNode(null, new transform.FunctionFilter('GetFive', function (input, i) {
             return 5;
         }));
 
         GetFiveFilter.addInput(IncrementInputFilterNodea);
+        GetFiveFilter.addInput(IncrementInputFilterNodec);
+
+        var embeddedPipe = new transform.Pipe('EmbeddedPipe');
+        var IncrementInputFilterNoded = new transform.TransformNode(null, incrementInputFilter);
+
+        embeddedPipe.add(IncrementInputFilterNoded);
 
         var pipeline = new transform.Pipe('Simple Pipe');
 
-        pipeline.add(getDataArrayFilter).add(IncrementInputFilterNodeb).add(GetFiveFilter);
+        var dataArrayFilterNode = new transform.TransformNode(null, getDataArrayFilter);
+
+        pipeline.add(dataArrayFilterNode).add(IncrementInputFilterNodeb).add(GetFiveFilter);
 
         return pc.toJointGraph(pipeline, graph);
     }
 
     function runStuff() {
+        var V = joint.vectorizer;
+        var g = joint.geometry;
 
-        var joint = jointLib();
         var graph = new joint.dia.Graph();
 
         var paper = new joint.dia.Paper({
             el: $('#MahDiagram'),
-            width: 800,
-            height: 600,
+            width: 1280,
+            height: 1024,
             gridSize: 1,
             model: graph,
             snapLinks: true,
@@ -91,18 +101,8 @@ System.register(['./joint', './joint.shapes.devs', './treelayout', 'lodash', 've
     }
 
     return {
-        setters: [function (_joint) {
-            jointLib = _joint['default'];
-        }, function (_jointShapesDevs) {
-            jointShapesDevLib = _jointShapesDevs['default'];
-        }, function (_treelayout) {
-            treeLayout = _treelayout['default'];
-        }, function (_lodash) {
-            _ = _lodash['default'];
-        }, function (_vectorizer) {
-            V = _vectorizer['default'];
-        }, function (_geometry) {
-            g = _geometry['default'];
+        setters: [function (_jointjs) {
+            joint = _jointjs['default'];
         }, function (_PipeConverter) {
             PipeConverter = _PipeConverter.PipeConverter;
         }, function (_dashTransform) {

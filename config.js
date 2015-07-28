@@ -21,6 +21,7 @@ System.config({
     "core-js": "npm:core-js@0.9.15",
     "gulp": "npm:gulp@3.9.0",
     "joint": "github:beintrepid/joint@0.0.1",
+    "jointjs": "npm:jointjs@0.9.4",
     "linq-es6": "npm:linq-es6@0.2.1",
     "lodash": "npm:lodash@3.10.0",
     "require-dir": "npm:require-dir@0.3.0",
@@ -211,6 +212,11 @@ System.config({
       "public-encrypt": "npm:public-encrypt@2.0.1",
       "randombytes": "npm:randombytes@2.0.1"
     },
+    "npm:dagre@0.7.1": {
+      "graphlib": "npm:graphlib@1.0.1",
+      "lodash": "npm:lodash@2.4.2",
+      "process": "github:jspm/nodelibs-process@0.1.1"
+    },
     "npm:dateformat@1.0.11": {
       "get-stdin": "npm:get-stdin@4.0.1",
       "meow": "npm:meow@3.1.0"
@@ -330,6 +336,10 @@ System.config({
       "util": "github:jspm/nodelibs-util@0.1.0",
       "vm": "github:jspm/nodelibs-vm@0.1.0"
     },
+    "npm:graphlib@1.0.1": {
+      "lodash": "npm:lodash@2.4.2",
+      "process": "github:jspm/nodelibs-process@0.1.1"
+    },
     "npm:gulp-util@3.0.5": {
       "array-differ": "npm:array-differ@1.0.0",
       "array-uniq": "npm:array-uniq@1.0.2",
@@ -401,6 +411,17 @@ System.config({
     "npm:is-utf8@0.2.0": {
       "fs": "github:jspm/nodelibs-fs@0.1.2"
     },
+    "npm:jointjs@0.9.4": {
+      "backbone": "npm:backbone@1.2.1",
+      "dagre": "npm:dagre@0.7.1",
+      "graphlib": "npm:graphlib@1.0.1",
+      "jquery": "npm:jquery@2.1.3",
+      "lodash": "npm:lodash@2.2.1",
+      "process": "github:jspm/nodelibs-process@0.1.1"
+    },
+    "npm:jquery@2.1.3": {
+      "process": "github:jspm/nodelibs-process@0.1.1"
+    },
     "npm:liftoff@2.1.0": {
       "events": "github:jspm/nodelibs-events@0.1.1",
       "extend": "npm:extend@2.0.1",
@@ -446,6 +467,12 @@ System.config({
       "lodash.escape": "npm:lodash.escape@3.0.0"
     },
     "npm:lodash@1.0.2": {
+      "process": "github:jspm/nodelibs-process@0.1.1"
+    },
+    "npm:lodash@2.2.1": {
+      "process": "github:jspm/nodelibs-process@0.1.1"
+    },
+    "npm:lodash@2.4.2": {
       "process": "github:jspm/nodelibs-process@0.1.1"
     },
     "npm:lodash@3.10.0": {

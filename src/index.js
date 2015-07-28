@@ -18,12 +18,12 @@ System.config({
 
 export {PipeConverter} from './pipeConverter';
 
-import jointLib from './joint';
-import jointShapesDevLib from './joint.shapes.devs';
-import treeLayout from './treelayout';
-import _ from 'lodash';
-import V from 'vectorizer';
-import g from 'geometry';
+import joint from 'jointjs';
+//import jointShapesDevLib from './joint.shapes.devs';
+//import treeLayout from './treelayout';
+//import _ from 'lodash';
+//import V from 'vectorizer';
+//import g from 'geometry';
 
 
 import {PipeConverter} from './PipeConverter';
@@ -32,6 +32,8 @@ import * as transform from 'dash-transform';
 function generatePipeGraph(graph)
 {
     var pc = new PipeConverter();
+
+
 
     var getDataArrayFilter = new transform.FunctionFilter('GetDataArray',(input,i)=>{
         return [1,2,3,4];
@@ -42,16 +44,26 @@ function generatePipeGraph(graph)
     });
     var IncrementInputFilterNodea = new transform.TransformNode(null,incrementInputFilter);
     var IncrementInputFilterNodeb = new transform.TransformNode(null,incrementInputFilter);
+    var IncrementInputFilterNodec = new transform.TransformNode(null,incrementInputFilter);
 
     var GetFiveFilter = new transform.TransformNode(null,new transform.FunctionFilter('GetFive',(input,i)=>{
         return 5;
     }));
 
     GetFiveFilter.addInput(IncrementInputFilterNodea);
+    GetFiveFilter.addInput(IncrementInputFilterNodec);
+
+    var embeddedPipe = new transform.Pipe('EmbeddedPipe');
+    var IncrementInputFilterNoded = new transform.TransformNode(null,incrementInputFilter);
+
+    embeddedPipe.add(IncrementInputFilterNoded);
 
     var pipeline = new transform.Pipe('Simple Pipe');
 
-    pipeline.add(getDataArrayFilter)
+    var dataArrayFilterNode = new transform.TransformNode(null,getDataArrayFilter);
+   // dataArrayFilterNode.addInput(embeddedPipe);
+
+    pipeline.add(dataArrayFilterNode)
         .add(IncrementInputFilterNodeb)
         .add(GetFiveFilter);
 
@@ -61,16 +73,15 @@ function generatePipeGraph(graph)
 
 export function runStuff()
 {
+    var V = joint.vectorizer;
+    var g = joint.geometry;
 
-
-
-    var joint = jointLib();
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
         el: $('#MahDiagram'),
-        width: 800,
-        height: 600,
+        width: 1280,
+        height: 1024,
         gridSize: 1,
         model: graph,
         snapLinks: true,

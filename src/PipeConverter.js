@@ -1,16 +1,17 @@
-import jointLib from './joint';
-import jointShapesDevLib from './joint.shapes.devs';
+import joint from 'jointjs';
+//import jointShapesDevLib from './joint.shapes.devs';
 import Enumerable from 'linq-es6'
+import {Pipe} from 'dash-transform'
 
 export class PipeConverter
 {
     toJointGraph(pipe,graph)
     {
-        var joint = jointLib();
-
 
         var rootNode = pipe.rootNode;
-        this.traverseAndBuild(null,null,graph,pipe.rootNode);
+        var layoutInfo = this.traverseAndBuild(null,null,graph,pipe.rootNode,0);
+
+        this.treeLayout(graph,layoutInfo );
 
         //var graphLayout = new joint.layout.TreeLayout({
         //    graph: graph,
@@ -22,11 +23,58 @@ export class PipeConverter
 
     }
 
+    treeLayout(graph,layoutInfo)
+    {
+        var counts = layoutInfo.nodeLevels;
+        var max = 0;
+        var verticalSpaceSize = 150;
+        var horizontalSpaceSize = 250;
+        layoutInfo.nodeLevels.forEach((n)=>{
+            if(n.count > max)
+            {
+                max= n.count;
+            }
+        });
+
+        var maxNodeSpace = verticalSpaceSize * max;
+        var centre = maxNodeSpace / 2;
+
+        var hOffset = 0;
+        layoutInfo.nodeLevels.forEach((nodeLevel)=>{
+
+            var startPos = centre - ((nodeLevel.count * verticalSpaceSize) / 2);
+
+            var vOffset = startPos;
+
+            var index = 0;
+            nodeLevel.nodes.forEach((node)=> {
+
+                node.position(hOffset,vOffset + (index * verticalSpaceSize));
+                index++;
+            });
+
+            hOffset += horizontalSpaceSize;
+        });
+
+
+    }
+
     currentOffset = 0;
     nodeMargin = 560;
 
-    traverseAndBuild(parentNode,parentGraphNode,graph,node)
+    traverseAndBuild(    parentNode,
+    parentGraphNode,
+    graph,
+    node,
+    level,
+    layoutInfo)
     {
+
+        if (layoutInfo == null)
+        {
+            layoutInfo = {nodeLevels : []};
+        }
+
         var outputs = [];
         node.ancestors.forEach((n)=>{
             outputs.push(n.getNodeName());
@@ -41,18 +89,24 @@ export class PipeConverter
             attrs: {'.label' : {text : node.getNodeName()}}
         });
 
-        //var outPorts = node.ancestors
-        var e1 = new joint.shapes.devs.Coupled({
-            position: { x: 10, y: 150 },
-            size: { width: 10, height: 10 },
-            //inPorts: ['in'],
-            attrs: {'.label' : {text : 'test'}}
-        });
-
         graph.addCells([c1]);
-        graph.addCells([e1]);
 
-        c1.embed(e1);
+        if(node.pipe instanceof Pipe)
+        {
+            this.traverseAndBuild(node,c1,graph,node.pipe.rootNode,0);
+        }
+
+
+        if(layoutInfo.nodeLevels[level] == null)
+        {
+            layoutInfo.nodeLevels[level] = {count : 1, nodes : []};
+        }
+        else
+        {
+            layoutInfo.nodeLevels[level].count =  layoutInfo.nodeLevels[level].count + 1;
+        }
+
+        layoutInfo.nodeLevels[level].nodes.push(c1);
 
         if(parentGraphNode != null)
         {
@@ -61,8 +115,11 @@ export class PipeConverter
 
         this.currentOffset += this.nodeMargin;
         node.ancestors.forEach((n)=>{
-            this.traverseAndBuild(node,c1,graph,n);
+
+            this.traverseAndBuild(node,c1,graph,n,level + 1,layoutInfo);
         });
+
+        return layoutInfo;
     }
 
     connect (source, sourcePort, target, targetPort,graph) {
@@ -72,4 +129,13 @@ export class PipeConverter
         });
         link.addTo(graph).reparent();
     };
+}
+
+class TraverseParams{
+    parentNode;
+    parentGraphNode;
+    graph;
+    node;
+    level;
+    layoutInfo;
 }
