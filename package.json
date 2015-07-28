@@ -1,7 +1,7 @@
 {
-  "name": "Dash-TemplateModule",
-  "version": "0.0.2",
-  "description": "Empty template ready to be used for building modules. Includes a gulp build and test workflow.",
+  "name": "dash-transform-vis",
+  "version": "0.0.4",
+  "description": "Provides capabilities to visualise a dash-transform pipe.",
   "jspm": {
     "main": "index",
     "format": "register",
@@ -10,6 +10,7 @@
     },
     "dependencies": {
       "backbone": "npm:backbone@^1.2.1",
+      "dash-transform": "github:beintrepid/dash-transform@^0.0.4",
       "jointjs": "npm:jointjs@^0.9.4",
       "linq-es6": "npm:linq-es6@0.2.1",
       "lodash": "npm:lodash@^3.10.0"
