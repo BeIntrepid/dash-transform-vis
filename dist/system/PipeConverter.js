@@ -1,7 +1,7 @@
 System.register(['jointjs', 'linq-es6', 'dash-transform'], function (_export) {
     'use strict';
 
-    var joint, Enumerable, Pipe, PipeConverter, TraverseParams;
+    var joint, Enumerable, Pipe, PipeConverter, TraverseParams, LayoutInfo;
 
     function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -18,12 +18,13 @@ System.register(['jointjs', 'linq-es6', 'dash-transform'], function (_export) {
                 function PipeConverter() {
                     _classCallCheck(this, PipeConverter);
 
+                    this.nodeBreadthPadding = 50;
+                    this.nodeDepthPadding = 50;
                     this.currentOffset = 0;
                     this.nodeMargin = 560;
                 }
 
                 PipeConverter.prototype.toJointGraph = function toJointGraph(pipe, graph) {
-
                     var rootNode = pipe.rootNode;
 
                     var params = new TraverseParams();
@@ -31,56 +32,145 @@ System.register(['jointjs', 'linq-es6', 'dash-transform'], function (_export) {
                     params.node = pipe.rootNode;
                     params.level = 0;
 
-                    var layoutInfo = this.traverseAndBuild(params);
+                    this.traverseAndBuild(params);
 
-                    this.treeLayout(graph, layoutInfo);
+                    this.treeLayout(graph, pipe);
                 };
 
-                PipeConverter.prototype.treeLayout = function treeLayout(graph, layoutInfo) {
-                    var counts = layoutInfo.nodeLevels;
+                PipeConverter.prototype.treeLayout = function treeLayout(graph, pipe) {
+                    var node = pipe.rootNode;
+                    this.prepareNode(node);
+                    this.layoutNode(graph, pipe);
+                };
+
+                PipeConverter.prototype.layoutNode = function layoutNode(graph, pipe) {
+                    var hStart = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];
+
+                    var _this = this;
+
+                    var vStart = arguments.length <= 3 || arguments[3] === undefined ? 0 : arguments[3];
+                    var maxBreadth = arguments.length <= 4 || arguments[4] === undefined ? 0 : arguments[4];
+
+                    var levelInfo = [];
+                    this.getNodeLevelInfo(levelInfo, pipe.rootNode, 0);
                     var max = 0;
-                    var verticalSpaceSize = 150;
-                    var horizontalSpaceSize = 250;
-                    layoutInfo.nodeLevels.forEach(function (n) {
-                        if (n.count > max) {
-                            max = n.count;
+                    levelInfo.forEach(function (n) {
+                        if (n.breadth > max) {
+                            max = n.breadth;
                         }
                     });
 
-                    var maxNodeSpace = verticalSpaceSize * max;
+                    var maxNodeSpace = maxBreadth == 0 ? max : maxBreadth;
                     var centre = maxNodeSpace / 2;
 
-                    var hOffset = 0;
-                    layoutInfo.nodeLevels.forEach(function (nodeLevel) {
+                    var hOffset = hStart;
+                    levelInfo.forEach(function (nodeLevel) {
 
-                        var startPos = centre - nodeLevel.count * verticalSpaceSize / 2;
+                        var startPos = centre - nodeLevel.breadth / 2;
+                        startPos += vStart;
 
                         var vOffset = startPos;
 
-                        var index = 0;
-                        nodeLevel.nodes.forEach(function (node) {
+                        nodeLevel.children.forEach(function (node) {
+                            node.graphInfo.graphNode.position(hOffset, vOffset);
+                            vOffset += node.graphInfo.graphNode.attributes.size.height;
+                            vOffset += _this.nodeBreadthPadding;
 
-                            node.position(hOffset, vOffset + index * verticalSpaceSize);
-                            index++;
+                            if (node.pipe instanceof Pipe) {
+                                var pos = node.graphInfo.graphNode.position();
+                                var startX = pos.x + _this.nodeDepthPadding;
+                                var startY = pos.y + _this.nodeBreadthPadding / 2;
+                                _this.layoutNode(graph, node.pipe, startX, startY, node.graphInfo.graphNode.attributes.size.height);
+                            }
                         });
 
-                        hOffset += horizontalSpaceSize;
+                        hOffset += nodeLevel.maxDepth;
+                        hOffset += _this.nodeDepthPadding;
+                    });
+                };
+
+                PipeConverter.prototype.prepareNode = function prepareNode(node) {
+                    var _this2 = this;
+
+                    if (node.pipe instanceof Pipe) {
+                        this.prepareNode(node.pipe.rootNode);
+                        this.layoutPipeNode(node);
+                    } else {
+                        node.graphInfo.graphNode.resize(100, 100);
+                    }
+
+                    node.ancestors.forEach(function (n) {
+                        _this2.prepareNode(n);
+                    });
+                };
+
+                PipeConverter.prototype.layoutPipeNode = function layoutPipeNode(node) {
+                    var levelInfo = [];
+                    this.getNodeLevelInfo(levelInfo, node.pipe.rootNode, 0);
+                    var nodeBreadthNeeded = this.getMaxNodeSizeFromLevelInfo(levelInfo);
+                    var nodeDepthNeeded = this.getTotalDepthSizeFromLevelInfo(levelInfo) + this.nodeDepthPadding;
+                    node.graphInfo.graphNode.resize(nodeDepthNeeded, nodeBreadthNeeded);
+                };
+
+                PipeConverter.prototype.getTotalDepthSizeFromLevelInfo = function getTotalDepthSizeFromLevelInfo(levelInfo) {
+                    var _this3 = this;
+
+                    var depth = 0;
+                    levelInfo.forEach(function (n) {
+                        depth += n.maxDepth + _this3.nodeDepthPadding;
+                    });
+                    return depth;
+                };
+
+                PipeConverter.prototype.getMaxNodeSizeFromLevelInfo = function getMaxNodeSizeFromLevelInfo(levelInfo) {
+                    var max = 0;
+                    levelInfo.forEach(function (n) {
+                        if (n.breadth > max) {
+                            max = n.breadth;
+                        }
+                    });
+
+                    return max;
+                };
+
+                PipeConverter.prototype.getNodeLevelInfo = function getNodeLevelInfo(levelInfo, node, level) {
+                    var _this4 = this;
+
+                    var nodeBreadth = node.graphInfo.graphNode.attributes.size.height;
+                    var curNodeDepth = node.graphInfo.graphNode.attributes.size.width;
+
+                    var breadthAddition = this.nodeBreadthPadding;
+
+                    if (levelInfo[level] == null) {
+                        levelInfo[level] = {};
+                        levelInfo[level].breadth = nodeBreadth + breadthAddition;
+                        levelInfo[level].maxDepth = curNodeDepth;
+                        levelInfo[level].children = [];
+                    } else {
+                        levelInfo[level].breadth += nodeBreadth + breadthAddition;
+                    }
+
+                    if (curNodeDepth > levelInfo[level].maxDepth) {
+                        levelInfo[level].maxDepth = curNodeDepth;
+                    }
+
+                    levelInfo[level].children.push(node);
+
+                    node.ancestors.forEach(function (n) {
+                        _this4.getNodeLevelInfo(levelInfo, n, level + 1);
                     });
                 };
 
                 PipeConverter.prototype.traverseAndBuild = function traverseAndBuild(params) {
-                    var _this = this;
+                    var _this5 = this;
 
-                    var node = params.parentNode;
+                    var parentNode = params.parentNode;
                     var parentGraphNode = params.parentGraphNode;
                     var graph = params.graph;
                     var node = params.node;
                     var level = params.level;
-                    var layoutInfo = params.layoutInfo;
-
-                    if (layoutInfo == null) {
-                        layoutInfo = { nodeLevels: [] };
-                    }
+                    var parentPipe = params.parentPipe;
+                    var parentPipeGraphNode = params.parentPipeGraphNode;
 
                     var outputs = [];
                     node.ancestors.forEach(function (n) {
@@ -97,35 +187,48 @@ System.register(['jointjs', 'linq-es6', 'dash-transform'], function (_export) {
 
                     graph.addCells([c1]);
 
-                    if (node.pipe instanceof Pipe) {}
+                    node.graphInfo = { graphNode: c1 };
 
-                    if (layoutInfo.nodeLevels[level] == null) {
-                        layoutInfo.nodeLevels[level] = { count: 1, nodes: [] };
-                    } else {
-                        layoutInfo.nodeLevels[level].count = layoutInfo.nodeLevels[level].count + 1;
+                    if (node.pipe instanceof Pipe) {
+                        var params = new TraverseParams();
+                        params.parentNode = node;
+                        params.parentGraphNode = c1;
+                        params.graph = graph;
+                        params.node = node.pipe.rootNode;
+                        params.level = 0;
+                        params.parentPipe = node.pipe;
+                        params.parentPipeGraphNode = c1;
+                        this.traverseAndBuild(params);
                     }
 
-                    layoutInfo.nodeLevels[level].nodes.push(c1);
-
                     if (parentGraphNode != null) {
-                        this.connect(parentGraphNode, node.getNodeName(), c1, 'in', graph);
+                        var parentNodeName = node.getNodeName();
+                        if (parentPipe != null && parentNode.pipe instanceof Pipe) {
+                            parentNodeName = 'in';
+                        }
+
+                        this.connect(parentGraphNode, parentNodeName, c1, 'in', graph);
+                    }
+
+                    if (parentPipe != null) {
+                        parentPipeGraphNode.embed(c1);
                     }
 
                     this.currentOffset += this.nodeMargin;
                     node.ancestors.forEach(function (n) {
-
                         var params = new TraverseParams();
                         params.parentNode = node;
                         params.parentGraphNode = c1;
                         params.graph = graph;
                         params.node = n;
                         params.level = level + 1;
-                        params.layoutInfo = layoutInfo;
+                        if (parentPipe != null) {
+                            params.parentPipe = parentPipe;
+                            params.parentPipeGraphNode = parentPipeGraphNode;
+                        }
 
-                        _this.traverseAndBuild(params);
+                        _this5.traverseAndBuild(params);
                     });
-
-                    return layoutInfo;
                 };
 
                 PipeConverter.prototype.connect = function connect(source, sourcePort, target, targetPort, graph) {
@@ -143,6 +246,12 @@ System.register(['jointjs', 'linq-es6', 'dash-transform'], function (_export) {
 
             TraverseParams = function TraverseParams() {
                 _classCallCheck(this, TraverseParams);
+            };
+
+            LayoutInfo = function LayoutInfo() {
+                _classCallCheck(this, LayoutInfo);
+
+                this.ancestors = [];
             };
         }
     };

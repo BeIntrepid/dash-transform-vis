@@ -28,13 +28,45 @@ System.register(['jointjs', './PipeConverter', 'dash-transform', './pipeConverte
 
         var embeddedPipe = new transform.Pipe('EmbeddedPipe');
         var IncrementInputFilterNoded = new transform.TransformNode(null, incrementInputFilter);
+        var IncrementInputFilterNodee = new transform.TransformNode(null, incrementInputFilter);
 
+        IncrementInputFilterNoded.addInput(IncrementInputFilterNodee);
         embeddedPipe.add(IncrementInputFilterNoded);
+
+        var embeddedPipeD = new transform.Pipe('Fourth Pipe');
+        var embeddedPipeNodeD = new transform.TransformNode(null, embeddedPipeD);
+        embeddedPipeD.add(embeddedPipe.rootNode.cloneTree());
+        IncrementInputFilterNodea.addInput(embeddedPipeNodeD);
+
+        var doubleEmbeddedPipe = new transform.Pipe('DoubleEmbeddedPipe');
+        var IncrementInputFilterNodef = new transform.TransformNode(null, incrementInputFilter);
+        doubleEmbeddedPipe.add(IncrementInputFilterNodef);
+
+        IncrementInputFilterNodee.addInput(doubleEmbeddedPipe);
 
         var pipeline = new transform.Pipe('Simple Pipe');
 
         var dataArrayFilterNode = new transform.TransformNode(null, getDataArrayFilter);
-        dataArrayFilterNode.addInput(embeddedPipe);
+
+        var IncrementInputFilterNodee = new transform.TransformNode(null, incrementInputFilter);
+        var embeddedPipeNodeA = new transform.TransformNode(null, embeddedPipe);
+
+        var embeddedPipeB = new transform.Pipe('Second Pipe');
+        var embeddedPipeNodeB = new transform.TransformNode(null, embeddedPipeB);
+        embeddedPipeB.add(embeddedPipe.rootNode.cloneTree());
+
+        var embeddedPipeC = new transform.Pipe('Third Pipe');
+        var embeddedPipeNodeC = new transform.TransformNode(null, embeddedPipeC);
+        embeddedPipeC.add(embeddedPipeB.rootNode.cloneTree());
+        embeddedPipeC.add(embeddedPipeB.rootNode.cloneTree());
+        embeddedPipeC.add(embeddedPipeB.rootNode.cloneTree());
+        embeddedPipeC.add(embeddedPipeB.rootNode.cloneTree());
+        embeddedPipeC.add(embeddedPipeB.rootNode.cloneTree());
+
+        embeddedPipeNodeA.addInput(IncrementInputFilterNodee);
+        dataArrayFilterNode.addInput(embeddedPipeNodeA);
+        dataArrayFilterNode.addInput(embeddedPipeNodeB);
+        dataArrayFilterNode.addInput(embeddedPipeC);
 
         pipeline.add(dataArrayFilterNode).add(IncrementInputFilterNodeb).add(GetFiveFilter);
 
@@ -49,8 +81,8 @@ System.register(['jointjs', './PipeConverter', 'dash-transform', './pipeConverte
 
         var paper = new joint.dia.Paper({
             el: $('#MahDiagram'),
-            width: 1280,
-            height: 1024,
+            width: 4920,
+            height: 4024,
             gridSize: 1,
             model: graph,
             snapLinks: true,

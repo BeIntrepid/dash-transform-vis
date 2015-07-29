@@ -5,9 +5,11 @@ import {Pipe} from 'dash-transform'
 
 export class PipeConverter
 {
+    nodeBreadthPadding = 50;
+    nodeDepthPadding = 50;
+
     toJointGraph(pipe,graph)
     {
-
         var rootNode = pipe.rootNode;
 
         var params = new TraverseParams();
@@ -15,9 +17,9 @@ export class PipeConverter
         params.node = pipe.rootNode;
         params.level = 0;
 
-        var layoutInfo = this.traverseAndBuild(params);
+        this.traverseAndBuild(params);
 
-        this.treeLayout(graph,layoutInfo );
+        this.treeLayout(graph,pipe);
 
         //var graphLayout = new joint.layout.TreeLayout({
         //    graph: graph,
@@ -29,39 +31,134 @@ export class PipeConverter
 
     }
 
-    treeLayout(graph,layoutInfo)
+    treeLayout(graph,pipe)
     {
-        var counts = layoutInfo.nodeLevels;
+        var node = pipe.rootNode;
+        this.prepareNode(node);
+        this.layoutNode(graph,pipe);
+    }
+
+    layoutNode(graph,pipe,hStart=0,vStart=0,maxBreadth=0)
+    {
+        var levelInfo = [];
+        this.getNodeLevelInfo(levelInfo,pipe.rootNode,0);
         var max = 0;
-        var verticalSpaceSize = 150;
-        var horizontalSpaceSize = 250;
-        layoutInfo.nodeLevels.forEach((n)=>{
-            if(n.count > max)
+        levelInfo.forEach((n)=>{
+            if(n.breadth > max)
             {
-                max= n.count;
+                max= n.breadth;
             }
         });
 
-        var maxNodeSpace = verticalSpaceSize * max;
+        var maxNodeSpace = maxBreadth == 0 ? max : maxBreadth;
         var centre = maxNodeSpace / 2;
 
-        var hOffset = 0;
-        layoutInfo.nodeLevels.forEach((nodeLevel)=>{
+        var hOffset = hStart;
+        levelInfo.forEach((nodeLevel)=>{
 
-            var startPos = centre - ((nodeLevel.count * verticalSpaceSize) / 2);
+            var startPos = centre - (nodeLevel.breadth / 2);
+            startPos += vStart;
 
             var vOffset = startPos;
 
-            var index = 0;
-            nodeLevel.nodes.forEach((node)=> {
+            nodeLevel.children.forEach((node)=> {
+                node.graphInfo.graphNode.position(hOffset,vOffset);
+                vOffset += node.graphInfo.graphNode.attributes.size.height;
+                vOffset += this.nodeBreadthPadding;
 
-                node.position(hOffset,vOffset + (index * verticalSpaceSize));
-                index++;
+                if(node.pipe instanceof Pipe)
+                {
+                    var pos = node.graphInfo.graphNode.position();
+                    var startX = pos.x + this.nodeDepthPadding;
+                    var startY = pos.y + this.nodeBreadthPadding / 2;
+                    this.layoutNode(graph,node.pipe,startX,startY,node.graphInfo.graphNode.attributes.size.height);
+                }
+
             });
 
-            hOffset += horizontalSpaceSize;
+            hOffset += nodeLevel.maxDepth;
+            hOffset += this.nodeDepthPadding;
+        });
+    }
+
+    prepareNode(node)
+    {
+        if(node.pipe instanceof Pipe)
+        {
+            this.prepareNode(node.pipe.rootNode);
+            this.layoutPipeNode(node)
+        }
+        else
+        {
+            // Build this depending on the text etc later
+            node.graphInfo.graphNode.resize(100,100);
+        }
+
+        node.ancestors.forEach((n)=>{
+            this.prepareNode(n);
+        });
+    }
+
+    layoutPipeNode(node)
+    {
+        var levelInfo = [];
+        this.getNodeLevelInfo(levelInfo,node.pipe.rootNode,0);
+        var nodeBreadthNeeded = this.getMaxNodeSizeFromLevelInfo(levelInfo);
+        var nodeDepthNeeded = this.getTotalDepthSizeFromLevelInfo(levelInfo) + this.nodeDepthPadding;
+        node.graphInfo.graphNode.resize(nodeDepthNeeded,nodeBreadthNeeded);
+    }
+
+    getTotalDepthSizeFromLevelInfo(levelInfo)
+    {
+        var depth = 0;
+        levelInfo.forEach((n)=>{
+            depth += n.maxDepth + this.nodeDepthPadding;
+        });
+        return depth;
+    }
+
+    getMaxNodeSizeFromLevelInfo(levelInfo)
+    {
+        var max = 0;
+        levelInfo.forEach((n)=>{
+            if(n.breadth > max)
+            {
+                max= n.breadth;
+            }
         });
 
+        return max;
+    }
+
+    getNodeLevelInfo(levelInfo,node,level)
+    {
+        var nodeBreadth = node.graphInfo.graphNode.attributes.size.height;
+        var curNodeDepth = node.graphInfo.graphNode.attributes.size.width;
+
+        var breadthAddition = (this.nodeBreadthPadding );
+
+        if(levelInfo[level] == null)
+        {
+            levelInfo[level] = {};
+            levelInfo[level].breadth = nodeBreadth + breadthAddition ;
+            levelInfo[level].maxDepth = curNodeDepth;
+            levelInfo[level].children = [];
+        }
+        else
+        {
+            levelInfo[level].breadth += nodeBreadth + breadthAddition ;
+        }
+
+        if(curNodeDepth > levelInfo[level].maxDepth)
+        {
+            levelInfo[level].maxDepth = curNodeDepth;
+        }
+
+        levelInfo[level].children.push(node);
+
+        node.ancestors.forEach((n)=>{
+            this.getNodeLevelInfo(levelInfo,n,level + 1);
+        });
 
     }
 
@@ -71,12 +168,8 @@ export class PipeConverter
     traverseAndBuild(params)
     {
 
-        var [node,parentGraphNode,graph,node,level,layoutInfo] = [params.parentNode,params.parentGraphNode,params.graph,params.node,params.level,params.layoutInfo];
+        var [parentNode,parentGraphNode,graph,node,level,parentPipe,parentPipeGraphNode] = [params.parentNode,params.parentGraphNode,params.graph,params.node,params.level,params.parentPipe,params.parentPipeGraphNode];
 
-        if (layoutInfo == null)
-        {
-            layoutInfo = {nodeLevels : []};
-        }
 
         var outputs = [];
         node.ancestors.forEach((n)=>{
@@ -94,51 +187,54 @@ export class PipeConverter
 
         graph.addCells([c1]);
 
+        node.graphInfo = {graphNode : c1};
+
         if(node.pipe instanceof Pipe)
         {
-            //var params = new TraverseParams();
-            //params.parentNode = node;
-            //params.parentGraphNode = c1;
-            //params.graph = graph;
-            //params.node = node.pipe.rootNode;
-            //params.level = 0;
-            //params.layoutInfo = layoutInfo;
-            //params.parentPipe = node.pipe;
-            //this.traverseAndBuild(params);
-        }
+            var params = new TraverseParams();
+            params.parentNode = node;
+            params.parentGraphNode = c1;
+            params.graph = graph;
+            params.node = node.pipe.rootNode;
+            params.level = 0;
+            params.parentPipe = node.pipe;
+            params.parentPipeGraphNode = c1;
+            this.traverseAndBuild(params);
 
-        if(layoutInfo.nodeLevels[level] == null)
-        {
-            layoutInfo.nodeLevels[level] = {count : 1, nodes : []};
         }
-        else
-        {
-            layoutInfo.nodeLevels[level].count =  layoutInfo.nodeLevels[level].count + 1;
-        }
-
-        layoutInfo.nodeLevels[level].nodes.push(c1);
 
         if(parentGraphNode != null)
         {
-            this.connect(parentGraphNode,node.getNodeName(),c1,'in',graph);
+            var parentNodeName = node.getNodeName();
+            if(parentPipe != null && parentNode.pipe instanceof Pipe) {
+                parentNodeName = "in";
+            }
+
+            this.connect(parentGraphNode, parentNodeName, c1, 'in', graph);
+        }
+
+        if(parentPipe != null)
+        {
+            parentPipeGraphNode.embed(c1);
         }
 
         this.currentOffset += this.nodeMargin;
         node.ancestors.forEach((n)=>{
-
-
             var params = new TraverseParams();
             params.parentNode = node;
             params.parentGraphNode = c1;
             params.graph = graph;
             params.node = n;
             params.level = level + 1;
-            params.layoutInfo = layoutInfo;
+            if(parentPipe != null)
+            {
+                params.parentPipe = parentPipe;
+                params.parentPipeGraphNode = parentPipeGraphNode;
+            }
+
 
             this.traverseAndBuild(params);
         });
-
-        return layoutInfo;
     }
 
     connect (source, sourcePort, target, targetPort,graph) {
@@ -158,4 +254,16 @@ class TraverseParams{
     level;
     layoutInfo;
     parentPipe;
+}
+
+class LayoutInfo
+{
+    constructor()
+    {
+        this.ancestors = [];
+    }
+
+    node;
+    graphNode;
+    ancestors;
 }
