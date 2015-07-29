@@ -19,7 +19,7 @@ System.config({
     "babel-runtime": "npm:babel-runtime@5.5.6",
     "backbone": "npm:backbone@1.2.1",
     "core-js": "npm:core-js@0.9.15",
-    "dash-transform": "github:beintrepid/dash-transform@0.0.4",
+    "dash-transform": "github:beintrepid/dash-transform@0.0.6",
     "gulp": "npm:gulp@3.9.0",
     "joint": "github:beintrepid/joint@0.0.1",
     "jointjs": "npm:jointjs@0.9.4",
@@ -27,7 +27,7 @@ System.config({
     "lodash": "npm:lodash@3.10.0",
     "require-dir": "npm:require-dir@0.3.0",
     "run-sequence": "npm:run-sequence@1.1.0",
-    "github:beintrepid/dash-transform@0.0.4": {
+    "github:beintrepid/dash-transform@0.0.6": {
       "jquery": "github:components/jquery@2.1.4",
       "linq-es6": "npm:linq-es6@0.2.1"
     },

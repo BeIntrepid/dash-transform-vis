@@ -1,6 +1,6 @@
 {
   "name": "dash-transform-vis",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "Provides capabilities to visualise a dash-transform pipe.",
   "jspm": {
     "main": "index",
@@ -10,7 +10,7 @@
     },
     "dependencies": {
       "backbone": "npm:backbone@^1.2.1",
-      "dash-transform": "github:beintrepid/dash-transform@^0.0.4",
+      "dash-transform": "github:beintrepid/dash-transform@^0.0.6",
       "jointjs": "npm:jointjs@^0.9.4",
       "linq-es6": "npm:linq-es6@0.2.1",
       "lodash": "npm:lodash@^3.10.0"
